@@ -1,0 +1,65 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+    <div class="container">
+        <div class="grid">
+            <div class="row">
+                <div class="cell-12">
+                    <div class="row">
+                        <div class="cell-3">
+                            <div class="form-group" id="playerListContainer">
+                                <label>Players:</label>
+                                <input id="playerName-0" class="player-input" type="text" data-role="input">
+                                <small class="text-muted">Separate players by indent</small>
+                            </div>
+                        </div>
+                        <div class="cell-8 offset-1">
+                            <div class="form-group">
+                                <label>Format:</label>
+                                <input type="radio" data-role="radio" data-caption="Single Elimination" name="format" checked>
+                                <input type="radio" data-role="radio" data-caption="Double Elimination" name="format" disabled>
+                            </div>
+                            <div class="form-group">
+                                <input type="checkbox" data-role="checkbox" data-caption="Remember me">
+                            </div>
+                            <div class="form-group">
+                                <button class="button success">Submit data</button>
+                                <input type="button" class="button" value="Cancel">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        var playerCount = 0;
+        $(document).ready(function () {
+            RefreshEventListener();
+        });
+
+        function RefreshEventListener() {
+            $('.player-input').off();
+            $('.player-input').on("keypress", function(e) {
+                if (e.keyCode == 13) {
+                    playerCount++;
+                    $('#playerListContainer').append(
+                        '<div class="input player-input">'
+                        + '<input class="" id="playerName-' + playerCount + '" type="text" data-role="input" data-role-input="true">' 
+                        + '<div class="button-group"><button class="button input-clear-button" tabindex="-1" type="button">'
+                        + '<span class="default-icon-cross"></span></button></div></div>');                    
+                    RefreshEventListener();
+                    $('#playerName-' + playerCount).focus();                    
+                    return false; // prevent default from happening
+                }
+            });
+        }
+    </script>
+}
+

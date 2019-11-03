@@ -1,0 +1,53 @@
+﻿@model BracketGenerator.Models.BracketMatchUpsViewModel
+    <div>
+        <div class="row">
+            <div class="cell-12 ">
+                <div class="row">
+                    <div class="cell-4 round-container">
+                        <div class="round-label">
+                            <h2>Round 1</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="cell-12 matchup-results">
+                <div class="row">
+                    <div class="cell-7">
+                        @{
+                            int ctr = 1;
+                        }
+                        @foreach (var matchUp in Model.AllMatchUps)
+                        {
+                            <div class="row">
+                                <div class="cell-9 matchup" id="matchUp-@ctr">
+                                    <div class="card bg-secondary ">
+                                        <div class="card-content p-2">
+                                            @matchUp
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="cell-3" style="padding:0;">
+                                    <hr class="match-next-line" />
+                                </div>
+                            </div>
+                            ctr++;
+                        }
+                    </div>
+                    <div class="cell-2" style="padding: 0;">
+                        @{
+                            ctr = 1;
+                        }
+                        @while (ctr <= Model.TotalMatchUpCount / 2)
+                        {
+                            <div class="match-pair-combine">
+                                <div class="next-match"></div>
+                            </div>
+                            <div class="match-lines-spacer"></div>
+
+                            ctr++;
+                        }
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div>

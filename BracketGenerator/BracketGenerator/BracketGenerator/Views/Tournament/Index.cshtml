@@ -9,26 +9,34 @@
             <div class="row">
                 <div class="cell-12">
                     <div class="row">
-                        <div class="cell-3">
-                            <div class="form-group" id="playerListContainer">
-                                <label>Players:</label>
-                                <input id="playerName-0" class="player-input" type="text" data-role="input">
-                                <small class="text-muted">Separate players by indent</small>
+                        <div class="cell-12 settings-container">
+                            <div class="row">
+                                <div class="cell-3">
+                                    <div class="form-group" id="playerListContainer">
+                                        <label>Players:</label>
+                                        <input id="playerName-0" class="player-input" type="text" data-role="input" onclick="getPlayerInputNumber(0);">
+                                        <div id="additionalPlayers"></div>
+                                        <small class="text-muted">Press enter to register more Players</small>
+                                    </div>
+                                </div>
+                                <div class="cell-6 offset-1">
+                                    <div class="form-group">
+                                        <label>Format:</label>
+                                        <input type="radio" data-role="radio" data-caption="Single Elimination" name="format" checked>
+                                        @*<input type="radio" data-role="radio" data-caption="Double Elimination" name="format" disabled>*@
+                                    </div>
+                                    <div class="form-group">
+                                        @*<input type="checkbox" data-role="checkbox" data-caption="Remember me">*@
+                                    </div>
+                                    <div class="form-group">
+                                        <button id="btnSubmitForm" class="button success" onclick="saveSettings();">Submit data</button>
+                                        <input type="button" class="button" value="Cancel">
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="cell-8 offset-1">
-                            <div class="form-group">
-                                <label>Format:</label>
-                                <input type="radio" data-role="radio" data-caption="Single Elimination" name="format" checked>
-                                <input type="radio" data-role="radio" data-caption="Double Elimination" name="format" disabled>
-                            </div>
-                            <div class="form-group">
-                                <input type="checkbox" data-role="checkbox" data-caption="Remember me">
-                            </div>
-                            <div class="form-group">
-                                <button class="button success">Submit data</button>
-                                <input type="button" class="button" value="Cancel">
-                            </div>
+                        <div class="cell-12 ">
+                            <div id="bracketContainer"></div>
                         </div>
                     </div>
                 </div>
@@ -40,23 +48,86 @@
 @section Scripts {
     <script type="text/javascript">
         var playerCount = 0;
+        var isPlayerNamesValid = false;
+        var currentPlayerNameFocus = 0;
+
         $(document).ready(function () {
-            RefreshEventListener();
+            refreshEventListener();
         });
 
-        function RefreshEventListener() {
+        function saveSettings() {
+            if (validateInputs()) {
+                var currentCount = 0;
+                var allPlayerNames = [];
+                while (currentCount <= playerCount) {
+                    var currentName = $('#playerName-' + currentCount).val();
+                    allPlayerNames.push(currentName);
+                    currentCount++;
+                } 
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SaveSettings", "Tournament")',
+                    data: 'allPlayerNames=' + allPlayerNames,
+                    success: function (data) {   
+                        $('#bracketContainer').html(data.BracketResultView);
+                    },
+                    error: function(request, error)
+                    {
+                        alert("Request: " + JSON.stringify(request));
+                        alert("Error: " + error);
+                    }
+                });
+
+            }            
+        }
+        function validateInputs() {
+            var ctr = 0;
+            while (ctr <= playerCount) {
+                var currentName = $('#playerName-' + ctr).val();
+                if (!currentName) {
+                    $('#playerName-' + ctr).parent().css("border-color", "red");
+                    return false;
+                }
+                $('#playerName-' + ctr).parent().css("border-color", "#d9d9d9");
+                ctr++;
+            }
+            return true;
+        }
+
+        function getPlayerInputNumber(currentId) {
+            currentPlayerNameFocus = currentId;
+        }
+
+        function refreshEventListener() {
             $('.player-input').off();
             $('.player-input').on("keypress", function(e) {
-                if (e.keyCode == 13) {
-                    playerCount++;
-                    $('#playerListContainer').append(
-                        '<div class="input player-input">'
-                        + '<input class="" id="playerName-' + playerCount + '" type="text" data-role="input" data-role-input="true">' 
-                        + '<div class="button-group"><button class="button input-clear-button" tabindex="-1" type="button">'
-                        + '<span class="default-icon-cross"></span></button></div></div>');                    
-                    RefreshEventListener();
-                    $('#playerName-' + playerCount).focus();                    
+                if (currentPlayerNameFocus == playerCount && e.keyCode == 13) {
+                    if ($('#playerName-' + playerCount).val()) {
+                        playerCount++;
+                        $(this).css("border-color", "#d9d9d9");
+                        $('#additionalPlayers').append(
+                            '<div class="input player-input">'
+                            + '<input class="" id="playerName-' + playerCount + '" type="text" data-role="input" '
+                            + 'onClick="getPlayerInputNumber(' + playerCount + ');" data-role-input="true">'
+                            + '<div class="button-group"><button class="button input-clear-button" tabindex="-1" type="button">'
+                            + '<span class="default-icon-cross"></span></button></div></div>');
+                        refreshEventListener();
+                        $('#playerName-' + playerCount).focus();
+                        //$('#btnSubmitForm').attr('disabled', false);
+                        isPlayerNamesValid = true;
+                        currentPlayerNameFocus = playerCount;
+                    }
+                    else {
+                        $(this).css("border-color", "red");
+                        //$('#btnSubmitForm').attr('disabled', true);
+                        isPlayerNamesValid = false;
+                    }
+
                     return false; // prevent default from happening
+                }
+                else if (e.keyCode == 13) {
+                    $('#playerName-' + playerCount).focus();
                 }
             });
         }
